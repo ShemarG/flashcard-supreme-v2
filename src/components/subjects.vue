@@ -11,7 +11,7 @@
         <input id="subject-search" type="text" class="" placeholder="Subject Search" aria-label="Username" aria-describedby="basic-addon1"><br>
       </div>
 
-      <b-modal id="newSubjectModal" title="Create New Subject" class="row" centered>
+      <b-modal id="newSubjectModal" title="Create New Subject" class="row" centered @ok="modalSubmit" @hidden="resetModal">
         <div class="mb-3 col">
           <span>Title:</span><br>
           <b-form-input :state="titleState[0]" v-model="modalInput.title" class="mr-3"></b-form-input>
@@ -21,7 +21,7 @@
         </div>
         <div class="mb-3 col">
           <span>Subtitle:</span><br>
-          <b-form-input :state="subtitleState[0]" v-model="modalInput.subtitle" class="mr-3"></b-form-input>
+          <b-form-input :state="subtitleState[0]" v-model="modalInput.subtitle" placeholder="Defaults to date created if blank" class="mr-3"></b-form-input>
           <b-form-invalid-feedback>
             {{ subtitleState[1] }}
           </b-form-invalid-feedback>
@@ -73,7 +73,7 @@
       </b-modal>
 
       <div class="button-wrapper row justify-content-center">
-        <div v-for="subject in subjects" class="d-flex justify-content-center col-3 card">
+        <div :style="{backgroundImage: `url(${JSON.stringify(subject.pattern)})`, backgroundColor: subject.backgroundColorHex}" v-for="subject in subjects" class="d-flex justify-content-center col-3 card">
           <div class="row card-content align-items-center">
             <span class="col-12 subject-title">{{subject.title}}</span>
             <span class="col subject-subtitle">{{subject.subtitle}}</span>
@@ -97,7 +97,7 @@ export default {
     return {
       modalInput: {
           'title': "",
-          'subtitle': "B",
+          'subtitle': "",
           'patternName': "Texture",
           'pattern': svgs["Texture"].url,
           'backgroundColorName': "White",
@@ -135,13 +135,21 @@ export default {
       return JSON.stringify(pattern)
     },
     titleState (){
+      var state;
       if (this.modalInput.title.length != 0){
-        return [this.modalInput.title.length < 20 ? true : false, "Title must be less than 30 characters!"]
+        if (this.modalInput.title.replace(/^\s+|\s+$/g, '').length == 0){
+          state = [false, "Title is made up of only spaces!"]
+        } else {
+          state = [this.modalInput.title.length < 20 ? true : false, "Title must be less than 20 characters!"]
+        }
+      } else {
+        state = [false, "Please enter a title"]
       }
-      return [false, "Please enter a title"]
+      return state
     },
     subtitleState (){
-      return [this.modalInput.subtitle.length < 30 ? true : false, "Subtitle must be less than 30 characters!"]
+      var state = [this.modalInput.subtitle.length < 30 ? true : false, "Subtitle must be less than 30 characters!"]
+      return state
     }
   },
   components: {
@@ -175,10 +183,28 @@ export default {
         }
       }
     },
-    check () {
-      console.log(this.modalInput)
+    resetModal () {
+      this.modalInput = {
+          'title': "",
+          'subtitle': "",
+          'patternName': "Texture",
+          'pattern': svgs["Texture"].url,
+          'backgroundColorName': "White",
+          'backgroundColorHex': "#000000",
+          'patternColorName': "Black",
+          'patternColorHex': "#ffffff",
+          'opacity':"I"
+      }
+    },
+    modalSubmit (bvModalEvt){
+      if (this.titleState[0] && this.subtitleState[0] == true){
+        console.log("yo shit vaild")
+      } else {
+        bvModalEvt.preventDefault()
+        console.log("yo shit not valid")
+      }
     }
-  }
+  },
 }
 </script>
 <style>
