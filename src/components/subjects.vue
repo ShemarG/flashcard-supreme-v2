@@ -1,5 +1,6 @@
 <template>
-  <title-header>
+  <div class="">
+    <title-header></title-header>
     <main-nav :navArray="navItems"></main-nav>
     <div id="subjects-container" class="container-fluid">
       <div class="input-group mt-4 mb-4 justify-content-center">
@@ -58,10 +59,10 @@
                 {{ name }}
               </b-dropdown-item-button>
             </b-dropdown>
-            <span class="col">Opacity</span>
-            <b-input-group prepend="0" append="100" class="mt-2">
+            <span class="col">Opacity: {{ modalInput.opacity + "%" }} </span>
+            <b-input-group prepend="0" append="50" class="mt-2">
 
-              <b-form-input type="range" class="col" v-model="modalInput.opacity" value="40"></b-form-input>
+              <b-form-input type="range" max="50" class="col" v-model="modalInput.opacity" value="40"></b-form-input>
             </b-input-group>
           </div>
 
@@ -73,16 +74,16 @@
       </b-modal>
 
       <div class="button-wrapper row justify-content-center">
-        <div :style="{backgroundImage: `url(${JSON.stringify(subject.pattern)})`, backgroundColor: subject.backgroundColorHex}" v-for="subject in subjects" class="d-flex justify-content-center col-3 card">
+        <div :style="{backgroundImage: `url(${JSON.stringify(subject.pattern)})`, backgroundColor: subject.backgroundColorHex}" v-for="(subject, name) in subjects" class="d-flex justify-content-center col-3 card">
           <div class="row card-content align-items-center">
             <span class="col-12 subject-title">{{subject.title}}</span>
             <span class="col subject-subtitle">{{subject.subtitle}}</span>
           </div>
         </div>
       </div>
-
     </div>
-  </title-header>
+  </div>
+
 </template>
 <script>
 
@@ -100,10 +101,10 @@ export default {
           'subtitle': "",
           'patternName': "Texture",
           'pattern': svgs["Texture"].url,
-          'backgroundColorName': "White",
-          'backgroundColorHex': "#000000",
-          'patternColorName': "Black",
-          'patternColorHex': "#ffffff",
+          'backgroundColorName': "Black",
+          'backgroundColorHex': "#ffffff",
+          'patternColorName': "White",
+          'patternColorHex': "#000000",
           'opacity':"I"
       },
       patterns: svgs,
@@ -165,7 +166,6 @@ export default {
       this.$http.get("http://localhost:8081/data.json", config)
       .then(resp => {
         this.subjects = resp.data.subjectData
-
       }).catch(error => {
         this.errored = true
       })
@@ -198,7 +198,14 @@ export default {
     },
     modalSubmit (bvModalEvt){
       if (this.titleState[0] && this.subtitleState[0] == true){
-        console.log("yo shit vaild")
+
+        this.$http.get("http://localhost:8081/data.json")
+        .then(resp => {
+          console.log(resp)
+        }).catch(error => {
+          this.errored = true
+        })
+
       } else {
         bvModalEvt.preventDefault()
         console.log("yo shit not valid")
@@ -230,7 +237,7 @@ body {
 }
 
 #style-preview {
-  height: 7vw;
+  height: 8rem;
   margin-left: 15px;
   margin-right: 15px;
   border: 1px solid grey;

@@ -17,5 +17,10 @@ export default new Router({
       name: 'Subjects',
       component: Subjects
     }
+    // {
+    //   path: '/subjects/:name',
+    //   name: ':name',
+    //   component:
+    // }
   ]
 })

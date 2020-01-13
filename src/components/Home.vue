@@ -1,5 +1,6 @@
 <template>
-  <title-header>
+  <div class="">
+    <title-header></title-header>
     <div class="btn-list">
       <router-link class="d-inline-flex row justify-content-center w-100 align-items-center" to="/subjects">
         <button type="button" class="menu btn btn-primary btn-lg justify-content-center align-items-center">
@@ -19,8 +20,8 @@
           <img class="col-auto btn-icon" src="../assets/icons/stats.svg" alt=""/>
           <span class="col-auto btn-label">Data & Statistics</span>
       </button><br>
+    </div>
   </div>
-  </title-header>
 </template>
 <script>
 
