@@ -60,9 +60,9 @@
               </b-dropdown-item-button>
             </b-dropdown>
             <span class="col">Opacity: {{ modalInput.opacity + "%" }} </span>
-            <b-input-group prepend="0" append="50" class="mt-2">
+            <b-input-group prepend="0" append="70" class="mt-2">
 
-              <b-form-input type="range" max="50" class="col" v-model="modalInput.opacity" value="40"></b-form-input>
+              <b-form-input type="range" max="70" class="col" v-model="modalInput.opacity" value="40"></b-form-input>
             </b-input-group>
           </div>
 
@@ -77,7 +77,7 @@
         <div :style="{backgroundImage: `url(${JSON.stringify(subject.pattern)})`, backgroundColor: subject.backgroundColorHex}" v-for="(subject, name) in subjects" class="d-flex justify-content-center col-3 card">
           <div class="row card-content align-items-center">
             <span class="col-12 subject-title">{{subject.title}}</span>
-            <span class="col subject-subtitle">{{subject.subtitle}}</span>
+            <span class="col subject-subtitle">{{subject.subtitle == '' ? `Created on ${subject.dateCreated.toLocaleDateString()} at ${subject.dateCreated.toLocaleTimeString()}` : subject.subtitle}}</span>
           </div>
         </div>
       </div>
@@ -99,17 +99,19 @@ export default {
       modalInput: {
           'title': "",
           'subtitle': "",
+          'date_created': "",
           'patternName': "Texture",
           'pattern': svgs["Texture"].url,
-          'backgroundColorName': "Black",
+          'backgroundColorName': "White",
           'backgroundColorHex': "#ffffff",
-          'patternColorName': "White",
+          'patternColorName': "Black",
           'patternColorHex': "#000000",
-          'opacity':"I"
+          'opacity':"35"
       },
       patterns: svgs,
       colors: colorObject,
       subjects: '' ,
+      uniqueNames: '',
       navItems: [
         {
           route:'/',
@@ -133,6 +135,7 @@ export default {
       pattern = pattern.substr(0, colorPos+9) + this.modalInput.patternColorHex.substr(1) + pattern.substr(colorPos+15)
       var opacityPos = (pattern).search("fill-opacity")
       pattern = pattern.substr(0, opacityPos+14) + this.modalInput.opacity/100 + pattern.substr(opacityPos+17)
+      this.modalInput.pattern = pattern
       return JSON.stringify(pattern)
     },
     titleState (){
@@ -140,6 +143,8 @@ export default {
       if (this.modalInput.title.length != 0){
         if (this.modalInput.title.replace(/^\s+|\s+$/g, '').length == 0){
           state = [false, "Title is made up of only spaces!"]
+        } else if (this.uniqueNames.indexOf(this.modalInput.title) != -1) {
+          state = [false, "A subject with that name already exists!"]
         } else {
           state = [this.modalInput.title.length < 20 ? true : false, "Title must be less than 20 characters!"]
         }
@@ -158,26 +163,25 @@ export default {
     mainNav,
   },
   mounted () {
-    var config = {
-      headers: {
-        'Accept': 'application/json'
-      }
-    }
-      this.$http.get("http://localhost:8081/data.json", config)
-      .then(resp => {
-        this.subjects = resp.data.subjectData
-      }).catch(error => {
-        this.errored = true
-      })
+
+    this.$http.get("http://localhost:3000/subjectData/0")
+    .then(resp => {
+      console.log(resp.data)
+      this.subjects = resp.data
+      this.uniqueNames = resp.data.map((a) => {return a.title})
+      this.uniqueCount = resp.data.subjectUniqueCount
+    }).catch(error => {
+      this.errored = true
+    })
   },
   methods: {
     handleModalInput (val, target, ...pairs) {
-    console.log(val)
+    // console.log(val)
     this.modalInput[`${target}`] = val
       if(pairs.length != 0){
         for (var i = 0; i<pairs.length; i++){
           if ((i+1) % 2 == 0) {
-            console.log(this.modalInput)
+            // console.log(this.modalInput)
             this.modalInput[`${pairs[i]}`] = pairs[i-1];
           }
         }
@@ -187,21 +191,24 @@ export default {
       this.modalInput = {
           'title': "",
           'subtitle': "",
+          'dateCreated': "",
           'patternName': "Texture",
           'pattern': svgs["Texture"].url,
           'backgroundColorName': "White",
-          'backgroundColorHex': "#000000",
+          'backgroundColorHex': "#ffffff",
           'patternColorName': "Black",
-          'patternColorHex': "#ffffff",
-          'opacity':"I"
+          'patternColorHex': "#000000",
+          'opacity':"35"
       }
     },
     modalSubmit (bvModalEvt){
       if (this.titleState[0] && this.subtitleState[0] == true){
+        this.modalInput.dateCreated = new Date()
+        var url = `http://localhost:3000/subjectData`
 
-        this.$http.get("http://localhost:8081/data.json")
+        this.$http.post(url, this.modalInput)
         .then(resp => {
-          console.log(resp)
+        console.log(resp)
         }).catch(error => {
           this.errored = true
         })
@@ -211,7 +218,7 @@ export default {
         console.log("yo shit not valid")
       }
     }
-  },
+  }
 }
 </script>
 <style>
@@ -246,10 +253,11 @@ body {
 
 .card-content{
   line-height: 1.5;
+   text-shadow: -0.5px -0.5px 0 #ffffff, 0.5px -0.5px 0 #ffffff, -0.5px 0.5px 0 #ffffff, 0.5px 0.5px 0 #ffffff;
 }
 
 .button-wrapper {
-  width: inherit;
+  width: 100%;
 }
 
 .subject-title {
